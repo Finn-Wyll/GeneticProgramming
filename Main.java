@@ -5,17 +5,18 @@ public class Main {
 
 	public static void main(String[] args) throws Exception {
 		try (Scanner scanner = new Scanner(System.in)) {
-			System.out.print("Choose model (arithmetic/logical): ");
+			System.out.print("Choose model (a/arithmetic or l/logical): ");
 			String modelChoice = scanner.next().trim().toLowerCase(Locale.ROOT);
 
-			if (!modelChoice.startsWith("arith")) {
+			boolean isArithmetic = modelChoice.startsWith("a");
+			if (!isArithmetic) {
 				System.out.println("Logical model is not implemented in this branch. Use the arithmetic model here.");
 				return;
 			}
 
-			System.out.print("Choose mode (demonstration/classification): ");
+			System.out.print("Choose mode (d/demonstration or c/classification): ");
 			String modeChoice = scanner.next().trim().toLowerCase(Locale.ROOT);
-			boolean demoMode = modeChoice.startsWith("demo");
+			boolean demoMode = modeChoice.startsWith("d");
 
 			System.out.print("Enter seed value: ");
 			long seed = scanner.nextLong();
@@ -55,7 +56,7 @@ public class Main {
 			int mutationDepth = 3;
 			int tournamentSize = 5;
 
-			GeneticProgram gp = new GeneticProgram(
+ArithmeticGeneticProgram gp = new ArithmeticGeneticProgram(
 					populationSize, maxGenerations, crossoverRate, mutationRate,
 					maxDepth, mutationDepth, tournamentSize, seed, ctx, variableNames, functions);
 
