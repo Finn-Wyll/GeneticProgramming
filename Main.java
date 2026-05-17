@@ -8,12 +8,6 @@ public class Main {
 			System.out.print("Choose model (a/arithmetic or l/logical): ");
 			String modelChoice = scanner.next().trim().toLowerCase(Locale.ROOT);
 
-			boolean isArithmetic = modelChoice.startsWith("a");
-			if (!isArithmetic) {
-				System.out.println("Logical model is not implemented in this branch. Use the arithmetic model here.");
-				return;
-			}
-
 			System.out.print("Choose mode (d/demonstration or c/classification): ");
 			String modeChoice = scanner.next().trim().toLowerCase(Locale.ROOT);
 			boolean demoMode = modeChoice.startsWith("d");
@@ -27,27 +21,15 @@ public class Main {
 			System.out.print("Enter test file path: ");
 			String testPath = scanner.next();
 
-			// load data
 			double[][] trainX = loadFeatures(trainPath);
 			int[] trainY = loadLabels(trainPath);
 			double[][] testX = loadFeatures(testPath);
 			int[] testY = loadLabels(testPath);
 
-			// variable names matching CSV columns (excluding class)
 			List<String> variableNames = List.of(
 					"age", "menopause", "tumor_size", "inv_nodes",
 					"node_caps", "deg_malig", "breast", "breast_quad", "irradiat");
 
-			// build context and function set
-			Context<Double> ctx = new Context<>();
-			List<FunctionNode<Double>> functions = List.of(
-					new FunctionNode<>("+", (a, b) -> a + b),
-					new FunctionNode<>("-", (a, b) -> a - b),
-					new FunctionNode<>("*", (a, b) -> a * b),
-					new FunctionNode<>("/", (a, b) -> b == 0.0 ? 1.0 : a / b)
-			);
-
-			// GP parameters
 			int populationSize = 200;
 			int maxGenerations = 100;
 			double crossoverRate = 0.8;
@@ -56,43 +38,58 @@ public class Main {
 			int mutationDepth = 3;
 			int tournamentSize = 5;
 
-ArithmeticGeneticProgram gp = new ArithmeticGeneticProgram(
-					populationSize, maxGenerations, crossoverRate, mutationRate,
-					maxDepth, mutationDepth, tournamentSize, seed, ctx, variableNames, functions);
+			GeneticProgram gp;
 
-				// train
+			if (modelChoice.startsWith("a")) {
+				Context<Double> ctx = new Context<>();
+				List<FunctionNode<Double>> functions = List.of(
+						new FunctionNode<>("+", (a, b) -> a + b),
+						new FunctionNode<>("-", (a, b) -> a - b),
+						new FunctionNode<>("*", (a, b) -> a * b),
+						new FunctionNode<>("/", (a, b) -> b == 0.0 ? 1.0 : a / b));
+
+				gp = new ArithmeticGeneticProgram(
+						populationSize, maxGenerations, crossoverRate, mutationRate,
+						maxDepth, mutationDepth, tournamentSize, seed, ctx, variableNames, functions);
+
 				System.out.println("\n--- Arithmetic GP ---");
-				long startTime = System.currentTimeMillis();
-				Node<Double> best = gp.train(trainX, trainY, demoMode);
-				long runtime = System.currentTimeMillis() - startTime;
+			} else {
+				Context<Double> ctx = new Context<>();
 
-				// training metrics
-				double trainAcc = gp.evaluateFitness(best, trainX, trainY);
-				System.out.printf("%nTraining Accuracy: %.4f%n", trainAcc);
+				gp = new DecisionTreeGeneticProgram(
+						populationSize, maxGenerations, crossoverRate, mutationRate,
+						maxDepth, mutationDepth, tournamentSize, seed, ctx, variableNames, 11.0);
 
-				// test metrics
-				double testAcc = gp.evaluateFitness(best, testX, testY);
-				int[] predictions = gp.predictBest(testX);
-				double fMeasure = fMeasure(testY, predictions);
-				if (!demoMode) {
-					printClassifications(testY, predictions);
-				}
+				System.out.println("\n--- Decision Tree GP ---");
+			}
 
-				System.out.println("\n--- Results ---");
-				System.out.printf("Training Accuracy : %.4f%%%n", trainAcc * 100);
-				System.out.printf("Test Accuracy     : %.4f%%%n", testAcc * 100);
-				System.out.printf("F-Measure         : %.4f%n", fMeasure);
-				System.out.printf("Runtime           : %dms%n", runtime);
-				System.out.printf("Seed              : %d%n", seed);
-				System.out.println("Best Individual   : " + gp.describe(best));
+			long startTime = System.currentTimeMillis();
+			Node<Double> best = gp.train(trainX, trainY, demoMode);
+			long runtime = System.currentTimeMillis() - startTime;
+
+			double trainAcc = gp.evaluateFitness(best, trainX, trainY);
+			double testAcc = gp.evaluateFitness(best, testX, testY);
+			int[] predictions = gp.predictBest(testX);
+			double fMeasure = fMeasure(testY, predictions);
+
+			if (!demoMode) {
+				printClassifications(testY, predictions);
+			}
+
+			System.out.println("\n--- Results ---");
+			System.out.printf("Training Accuracy : %.4f%%%n", trainAcc * 100);
+			System.out.printf("Test Accuracy     : %.4f%%%n", testAcc * 100);
+			System.out.printf("F-Measure         : %.4f%n", fMeasure);
+			System.out.printf("Runtime           : %dms%n", runtime);
+			System.out.printf("Seed              : %d%n", seed);
+			System.out.println("Best Individual   : " + gp.describe(best));
 		}
 	}
 
-	// --- load class labels (first column) ---
 	private static int[] loadLabels(String path) throws Exception {
 		List<Integer> labels = new ArrayList<>();
 		try (BufferedReader br = new BufferedReader(new FileReader(path))) {
-			br.readLine(); // skip header
+			br.readLine();
 			String line;
 			while ((line = br.readLine()) != null) {
 				if (line.trim().isEmpty())
@@ -104,11 +101,10 @@ ArithmeticGeneticProgram gp = new ArithmeticGeneticProgram(
 		return labels.stream().mapToInt(i -> i).toArray();
 	}
 
-	// --- load features (all columns except first) ---
 	private static double[][] loadFeatures(String path) throws Exception {
 		List<double[]> rows = new ArrayList<>();
 		try (BufferedReader br = new BufferedReader(new FileReader(path))) {
-			br.readLine(); // skip header
+			br.readLine();
 			String line;
 			while ((line = br.readLine()) != null) {
 				if (line.trim().isEmpty())
@@ -132,7 +128,6 @@ ArithmeticGeneticProgram gp = new ArithmeticGeneticProgram(
 		}
 	}
 
-	// --- F-measure (binary, class 1 is positive) ---
 	private static double fMeasure(int[] actual, int[] predicted) {
 		int tp = 0, fp = 0, fn = 0;
 		for (int i = 0; i < actual.length; i++) {
