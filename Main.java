@@ -73,6 +73,9 @@ public class Main {
 				double testAcc = gp.evaluateFitness(best, testX, testY);
 				int[] predictions = predict(best, testX, variableNames, ctx);
 				double fMeasure = fMeasure(testY, predictions);
+				if (!demoMode) {
+					printClassifications(testY, predictions);
+				}
 
 				System.out.println("\n--- Results ---");
 				System.out.printf("Training Accuracy : %.4f%%%n", trainAcc * 100);
@@ -131,6 +134,14 @@ public class Main {
 			preds[i] = tree.evaluate() >= 0.0 ? 1 : 0;
 		}
 		return preds;
+	}
+
+	private static void printClassifications(int[] actual, int[] predicted) {
+		System.out.println("\n--- Test Classifications ---");
+		System.out.println("Instance\tActual\tPredicted");
+		for (int i = 0; i < actual.length; i++) {
+			System.out.printf("%d\t\t%d\t%d%n", i + 1, actual[i], predicted[i]);
+		}
 	}
 
 	// --- F-measure (binary, class 1 is positive) ---
