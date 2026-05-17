@@ -72,7 +72,7 @@ ArithmeticGeneticProgram gp = new ArithmeticGeneticProgram(
 
 				// test metrics
 				double testAcc = gp.evaluateFitness(best, testX, testY);
-				int[] predictions = predict(best, testX, variableNames, ctx);
+				int[] predictions = gp.predictBest(testX);
 				double fMeasure = fMeasure(testY, predictions);
 				if (!demoMode) {
 					printClassifications(testY, predictions);
@@ -122,19 +122,6 @@ ArithmeticGeneticProgram gp = new ArithmeticGeneticProgram(
 			}
 		}
 		return rows.toArray(double[][]::new);
-	}
-
-	// --- generate predictions for a dataset ---
-	private static int[] predict(Node<Double> tree, double[][] X,
-			List<String> varNames, Context<Double> ctx) {
-		int[] preds = new int[X.length];
-		for (int i = 0; i < X.length; i++) {
-			for (int j = 0; j < varNames.size(); j++) {
-				ctx.set(varNames.get(j), X[i][j]);
-			}
-			preds[i] = tree.evaluate() >= 0.0 ? 1 : 0;
-		}
-		return preds;
 	}
 
 	private static void printClassifications(int[] actual, int[] predicted) {

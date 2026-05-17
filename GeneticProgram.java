@@ -28,7 +28,7 @@ public abstract class GeneticProgram {
 		this.random = new Random(seed);
 	}
 
-	// --- Abstract methods for subclasses to implement ---
+	
 	protected abstract void initialise();
 
 	protected abstract double evaluateFitness(Node<Double> individual, double[][] X, int[] y);
@@ -39,7 +39,8 @@ public abstract class GeneticProgram {
 
 	protected abstract String describe(Node<Double> node);
 
-	// --- Main GP loop (shared across all variants) ---
+	protected abstract int predict(Node<Double> tree, double[] features);
+
 	public Node<Double> train(double[][] X, int[] y) {
 		return train(X, y, false);
 	}
@@ -50,7 +51,7 @@ public abstract class GeneticProgram {
 
 		for (int gen = 0; gen < maxGenerations; gen++) {
 
-			// Evaluate fitness
+			// Evaluate fitness and track best individual
 			double[] fitnesses = new double[populationSize];
 			for (int i = 0; i < populationSize; i++) {
 				fitnesses[i] = evaluateFitness(population.get(i), X, y);
@@ -94,14 +95,13 @@ public abstract class GeneticProgram {
 				offspring.add(child2);
 			}
 
-			// Replace population, trim to exact size
+			// Trim population size
 			population = offspring.subList(0, populationSize);
 		}
 
 		return bestIndividual;
 	}
 
-	// --- Tournament selection (shared) ---
 	protected Node<Double> tournamentSelect(double[] fitnesses) {
 		int best = -1;
 		for (int i = 0; i < tournamentSize; i++) {
@@ -119,5 +119,23 @@ public abstract class GeneticProgram {
 
 	public double getBestFitness() {
 		return bestFitness;
+	}
+
+	public int predictBest(double[] features) {
+		if (bestIndividual == null) {
+			throw new IllegalStateException("Train the GP before calling predictBest().");
+		}
+		return predict(bestIndividual, features);
+	}
+
+	public int[] predictBest(double[][] X) {
+		if (bestIndividual == null) {
+			throw new IllegalStateException("Train the GP before calling predictBest().");
+		}
+		int[] predictions = new int[X.length];
+		for (int i = 0; i < X.length; i++) {
+			predictions[i] = predict(bestIndividual, X[i]);
+		}
+		return predictions;
 	}
 }

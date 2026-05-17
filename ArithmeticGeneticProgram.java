@@ -189,4 +189,12 @@ public class ArithmeticGeneticProgram extends GeneticProgram {
 		String right = rightNode == null ? "?" : describe(rightNode);
 		return "(" + left + " " + fn.getSymbol() + " " + right + ")";
 	}
+
+	@Override
+	protected int predict(Node<Double> tree, double[] features) {
+		for (int i = 0; i < variableNames.size(); i++) {
+			context.set(variableNames.get(i), features[i]);
+		}
+		return tree.evaluate() >= 0.0 ? 1 : 0;
+	}
 }
