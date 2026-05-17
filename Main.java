@@ -1,111 +1,123 @@
 import java.io.*;
 import java.util.*;
-import java.util.function.BinaryOperator;
 
 public class Main {
 
 	public static void main(String[] args) throws Exception {
-		Scanner scanner = new Scanner(System.in);
+		try (Scanner scanner = new Scanner(System.in)) {
+			System.out.print("Choose model (arithmetic/logical): ");
+			String modelChoice = scanner.next().trim().toLowerCase(Locale.ROOT);
 
-		System.out.print("Enter seed value: ");
-		long seed = scanner.nextLong();
+			if (!modelChoice.startsWith("arith")) {
+				System.out.println("Logical model is not implemented in this branch. Use the arithmetic model here.");
+				return;
+			}
 
-		System.out.print("Enter training file path: ");
-		String trainPath = scanner.next();
+			System.out.print("Choose mode (demonstration/classification): ");
+			String modeChoice = scanner.next().trim().toLowerCase(Locale.ROOT);
+			boolean demoMode = modeChoice.startsWith("demo");
 
-		System.out.print("Enter test file path: ");
-		String testPath = scanner.next();
+			System.out.print("Enter seed value: ");
+			long seed = scanner.nextLong();
 
-		// load data
-		double[][] trainX = loadFeatures(trainPath);
-		int[] trainY = loadLabels(trainPath);
-		double[][] testX = loadFeatures(testPath);
-		int[] testY = loadLabels(testPath);
+			System.out.print("Enter training file path: ");
+			String trainPath = scanner.next();
 
-		// variable names matching CSV columns (excluding class)
-		List<String> variableNames = List.of(
-				"age", "menopause", "tumor_size", "inv_nodes",
-				"node_caps", "deg_malig", "breast", "breast_quad", "irradiat");
+			System.out.print("Enter test file path: ");
+			String testPath = scanner.next();
 
-		// build context and function set
-		Context<Double> ctx = new Context<>();
-		List<BinaryOperator<Double>> functions = List.of(
-				(a, b) -> a + b,
-				(a, b) -> a - b,
-				(a, b) -> a * b,
-				(a, b) -> b == 0.0 ? 1.0 : a / b // protected division
-		);
+			// load data
+			double[][] trainX = loadFeatures(trainPath);
+			int[] trainY = loadLabels(trainPath);
+			double[][] testX = loadFeatures(testPath);
+			int[] testY = loadLabels(testPath);
 
-		// GP parameters
-		int populationSize = 200;
-		int maxGenerations = 100;
-		double crossoverRate = 0.8;
-		double mutationRate = 0.2;
-		int maxDepth = 5;
-		int mutationDepth = 3;
-		int tournamentSize = 5;
+			// variable names matching CSV columns (excluding class)
+			List<String> variableNames = List.of(
+					"age", "menopause", "tumor_size", "inv_nodes",
+					"node_caps", "deg_malig", "breast", "breast_quad", "irradiat");
 
-		GeneticProgram gp = new GeneticProgram(
-				populationSize, maxGenerations, crossoverRate, mutationRate,
-				maxDepth, mutationDepth, tournamentSize, seed, ctx, variableNames, functions);
+			// build context and function set
+			Context<Double> ctx = new Context<>();
+			List<FunctionNode<Double>> functions = List.of(
+					new FunctionNode<>("+", (a, b) -> a + b),
+					new FunctionNode<>("-", (a, b) -> a - b),
+					new FunctionNode<>("*", (a, b) -> a * b),
+					new FunctionNode<>("/", (a, b) -> b == 0.0 ? 1.0 : a / b)
+			);
 
-		// train
-		System.out.println("\n--- Training ---");
-		long startTime = System.currentTimeMillis();
-		Node<Double> best = gp.train(trainX, trainY);
-		long runtime = System.currentTimeMillis() - startTime;
+			// GP parameters
+			int populationSize = 200;
+			int maxGenerations = 100;
+			double crossoverRate = 0.8;
+			double mutationRate = 0.2;
+			int maxDepth = 5;
+			int mutationDepth = 3;
+			int tournamentSize = 5;
 
-		// training metrics
-		double trainAcc = gp.evaluateFitness(best, trainX, trainY);
-		System.out.printf("%nTraining Accuracy: %.4f%n", trainAcc);
+			GeneticProgram gp = new GeneticProgram(
+					populationSize, maxGenerations, crossoverRate, mutationRate,
+					maxDepth, mutationDepth, tournamentSize, seed, ctx, variableNames, functions);
 
-		// test metrics
-		double testAcc = gp.evaluateFitness(best, testX, testY);
-		int[] predictions = predict(best, testX, variableNames, ctx);
-		double fMeasure = fMeasure(testY, predictions);
+				// train
+				System.out.println("\n--- Arithmetic GP ---");
+				long startTime = System.currentTimeMillis();
+				Node<Double> best = gp.train(trainX, trainY, demoMode);
+				long runtime = System.currentTimeMillis() - startTime;
 
-		System.out.println("\n--- Results ---");
-		System.out.printf("Training Accuracy : %.4f%%%n", trainAcc * 100);
-		System.out.printf("Test Accuracy     : %.4f%%%n", testAcc * 100);
-		System.out.printf("F-Measure         : %.4f%n", fMeasure);
-		System.out.printf("Runtime           : %dms%n", runtime);
-		System.out.printf("Seed              : %d%n", seed);
+				// training metrics
+				double trainAcc = gp.evaluateFitness(best, trainX, trainY);
+				System.out.printf("%nTraining Accuracy: %.4f%n", trainAcc);
+
+				// test metrics
+				double testAcc = gp.evaluateFitness(best, testX, testY);
+				int[] predictions = predict(best, testX, variableNames, ctx);
+				double fMeasure = fMeasure(testY, predictions);
+
+				System.out.println("\n--- Results ---");
+				System.out.printf("Training Accuracy : %.4f%%%n", trainAcc * 100);
+				System.out.printf("Test Accuracy     : %.4f%%%n", testAcc * 100);
+				System.out.printf("F-Measure         : %.4f%n", fMeasure);
+				System.out.printf("Runtime           : %dms%n", runtime);
+				System.out.printf("Seed              : %d%n", seed);
+				System.out.println("Best Individual   : " + gp.describe(best));
+		}
 	}
 
 	// --- load class labels (first column) ---
 	private static int[] loadLabels(String path) throws Exception {
 		List<Integer> labels = new ArrayList<>();
-		BufferedReader br = new BufferedReader(new FileReader(path));
-		br.readLine(); // skip header
-		String line;
-		while ((line = br.readLine()) != null) {
-			if (line.trim().isEmpty())
-				continue;
-			String[] parts = line.trim().split(",");
-			labels.add(Integer.parseInt(parts[0].trim()));
+		try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+			br.readLine(); // skip header
+			String line;
+			while ((line = br.readLine()) != null) {
+				if (line.trim().isEmpty())
+					continue;
+				String[] parts = line.trim().split(",");
+				labels.add(Integer.valueOf(parts[0].trim()));
+			}
 		}
-		br.close();
 		return labels.stream().mapToInt(i -> i).toArray();
 	}
 
 	// --- load features (all columns except first) ---
 	private static double[][] loadFeatures(String path) throws Exception {
 		List<double[]> rows = new ArrayList<>();
-		BufferedReader br = new BufferedReader(new FileReader(path));
-		br.readLine(); // skip header
-		String line;
-		while ((line = br.readLine()) != null) {
-			if (line.trim().isEmpty())
-				continue;
-			String[] parts = line.trim().split(",");
-			double[] row = new double[parts.length - 1];
-			for (int i = 1; i < parts.length; i++) {
-				row[i - 1] = Double.parseDouble(parts[i].trim());
+		try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+			br.readLine(); // skip header
+			String line;
+			while ((line = br.readLine()) != null) {
+				if (line.trim().isEmpty())
+					continue;
+				String[] parts = line.trim().split(",");
+				double[] row = new double[parts.length - 1];
+				for (int i = 1; i < parts.length; i++) {
+					row[i - 1] = Double.parseDouble(parts[i].trim());
+				}
+				rows.add(row);
 			}
-			rows.add(row);
 		}
-		br.close();
-		return rows.toArray(new double[0][]);
+		return rows.toArray(double[][]::new);
 	}
 
 	// --- generate predictions for a dataset ---

@@ -5,11 +5,13 @@ import java.util.function.BinaryOperator;
  */
 public class FunctionNode<T> extends Node<T> {
 
-	private BinaryOperator<T> operator;
+	private final String symbol;
+	private final BinaryOperator<T> operator;
 	private Node<T> left;
 	private Node<T> right;
 
-	FunctionNode(BinaryOperator<T> function) {
+	FunctionNode(String symbol, BinaryOperator<T> function) {
+		this.symbol = symbol;
 		this.operator = function;
 	}
 
@@ -28,6 +30,14 @@ public class FunctionNode<T> extends Node<T> {
 		return this.right;
 	}
 
+	public String getSymbol() {
+		return this.symbol;
+	}
+
+	public BinaryOperator<T> getOperator() {
+		return this.operator;
+	}
+
 	public void setLeft(Node<T> left) {
 		this.left = left;
 	}
@@ -38,7 +48,7 @@ public class FunctionNode<T> extends Node<T> {
 
 	@Override
 	public Node<T> clone() {
-		FunctionNode<T> copy = new FunctionNode<T>(operator);
+		FunctionNode<T> copy = new FunctionNode<>(symbol, operator);
 		if (this.left != null)
 			copy.left = this.left.clone();
 		if (this.right != null)

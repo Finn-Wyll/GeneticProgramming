@@ -1,5 +1,4 @@
 import java.util.*;
-import java.util.function.BinaryOperator;
 
 public class GeneticProgram {
 
@@ -13,7 +12,7 @@ public class GeneticProgram {
 	private final Random random;
 	private final Context<Double> context;
 	private final List<String> variableNames;
-	private final List<BinaryOperator<Double>> functions;
+	private final List<FunctionNode<Double>> functions;
 
 	private List<Node<Double>> population;
 	private Node<Double> bestIndividual;
@@ -22,7 +21,7 @@ public class GeneticProgram {
 	public GeneticProgram(int populationSize, int maxGenerations, double crossoverRate,
 			double mutationRate, int maxDepth, int mutationDepth,
 			int tournamentSize, long seed, Context<Double> context,
-			List<String> variableNames, List<BinaryOperator<Double>> functions) {
+			List<String> variableNames, List<FunctionNode<Double>> functions) {
 		this.populationSize = populationSize;
 		this.maxGenerations = maxGenerations;
 		this.crossoverRate = crossoverRate;
@@ -68,6 +67,10 @@ public class GeneticProgram {
 
 	// --- Main GP loop ---
 	public Node<Double> train(double[][] X, int[] y) {
+		return train(X, y, false);
+	}
+
+	public Node<Double> train(double[][] X, int[] y, boolean verbose) {
 		initialise();
 		bestFitness = -1;
 
@@ -83,7 +86,10 @@ public class GeneticProgram {
 				}
 			}
 
-			System.out.printf("Generation %d | Best fitness: %.4f%n", gen, bestFitness);
+			if (verbose) {
+				System.out.printf("Generation %d | Best fitness: %.4f | Best individual: %s%n",
+						gen, bestFitness, describe(bestIndividual));
+			}
 
 			if (bestFitness == 1.0)
 				break;
@@ -230,7 +236,8 @@ public class GeneticProgram {
 		if (depth == 0 || (!full && random.nextBoolean())) {
 			return randomTerminal();
 		}
-		FunctionNode<Double> node = new FunctionNode<>(functions.get(random.nextInt(functions.size())));
+		FunctionNode<Double> function = functions.get(random.nextInt(functions.size()));
+		FunctionNode<Double> node = new FunctionNode<>(function.getSymbol(), function.getOperator());
 		node.setLeft(generateTree(depth - 1, full));
 		node.setRight(generateTree(depth - 1, full));
 		return node;
@@ -267,5 +274,23 @@ public class GeneticProgram {
 
 	public double getBestFitness() {
 		return bestFitness;
+	}
+
+	public String describe(Node<Double> node) {
+		if (node == null) {
+			return "?";
+		}
+		if (node instanceof TerminalNode) {
+			return String.format(Locale.US, "%.3f", ((TerminalNode<Double>) node).value());
+		}
+		if (node instanceof VariableNode) {
+			return ((VariableNode<Double>) node).name();
+		}
+		FunctionNode<Double> fn = (FunctionNode<Double>) node;
+		Node<Double> leftNode = fn.left();
+		Node<Double> rightNode = fn.right();
+		String left = leftNode == null ? "?" : describe(leftNode);
+		String right = rightNode == null ? "?" : describe(rightNode);
+		return "(" + left + " " + fn.getSymbol() + " " + right + ")";
 	}
 }

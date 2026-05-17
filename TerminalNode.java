@@ -12,12 +12,19 @@ public class TerminalNode<T> extends Node<T> {
 		this.value = value;
 	}
 
+	public T value() {
+		return this.value;
+	}
+
+	@Override
 	public T evaluate() {
 		return this.value;
 	}
 
+	@Override
 	public Node<T> clone() {
-		return new TerminalNode<T>(value);
+		TerminalNode<T> copy = new TerminalNode<>(value);
+		return copy;
 	}
 
 }

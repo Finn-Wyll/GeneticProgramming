@@ -16,4 +16,8 @@ public class VariableNode<T> extends Node<T> {
 	public Node<T> clone() {
 		return new VariableNode<>(name, context);
 	}
+
+	public String name() {
+		return this.name;
+	}
 }
