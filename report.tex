@@ -4,6 +4,7 @@
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{amsmath}
+\usepackage{amsfonts}
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage{hyperref}
@@ -11,6 +12,7 @@
 \usepackage{float}
 \usepackage{graphicx}
 \usepackage{parskip}
+\usepackage{longtable}
 
 \hypersetup{
     colorlinks=true,
@@ -32,12 +34,13 @@
 }
 
 \title{
-    \textbf{COS314 --- Artificial Intelligence} \\[0.5em]
+    \textbf{COS314 : Artificial Intelligence} \\[0.5em]
     \large Assignment Three: Genetic Programming for Breast Cancer Classification \\[0.3em]
     \normalsize Department of Computer Science \\
     Engineering, Built Environment and Information Technology \\
     University of Pretoria
 }
+\author{Finnley Wyllie \and Alessandro Paravano}
 \date{2026}
 
 \begin{document}
@@ -53,8 +56,8 @@
 This report describes the design, implementation, and evaluation of two Genetic Programming (GP) systems developed to classify the Breast Cancer Wisconsin dataset into \emph{no-recurrence-events} (class 0) and \emph{recurrence-events} (class 1). The two approaches are:
 
 \begin{enumerate}
-    \item \textbf{Arithmetic GP (Symbolic Classifier)} --- evolves arithmetic expressions over the feature variables whose sign determines the predicted class.
-    \item \textbf{Decision Tree GP (Logical Classifier)} --- evolves binary decision trees whose branching structure classifies instances using threshold comparisons on individual features.
+    \item \textbf{Arithmetic GP (Symbolic Classifier)} : evolves arithmetic expressions over the feature variables whose sign determines the predicted class.
+    \item \textbf{Decision Tree GP (Logical Classifier)} : evolves binary decision trees whose branching structure classifies instances using threshold comparisons on individual features.
 \end{enumerate}
 
 Both systems are implemented in Java, seeded for full reproducibility, and evaluated over 30 independent runs. The best-performing run from each approach is reported and compared using a statistical significance test.
@@ -103,10 +106,10 @@ No further normalisation or imputation was applied beyond the integer encoding p
 Both classifiers share a common abstract base class (\texttt{GeneticProgram}) that implements:
 
 \begin{itemize}
-    \item \textbf{Ramped half-and-half initialisation} --- the population is divided into equal segments, one per depth level from 1 to \texttt{maxDepth}. Within each segment, alternating individuals are generated using the \emph{full} and \emph{grow} methods, ensuring diversity in tree shape and size.
-    \item \textbf{Tournament selection} --- $k$ individuals are drawn at random and the fittest is selected as a parent.
-    \item \textbf{Generational replacement} --- the entire population is replaced by offspring each generation, with elitism achieved by tracking the all-time best individual separately.
-    \item \textbf{Early termination} --- evolution halts immediately if a perfect fitness of 1.0 is reached.
+    \item \textbf{Ramped half-and-half initialisation} : the population is divided into equal segments, one per depth level from 1 to \texttt{maxDepth}. Within each segment, alternating individuals are generated using the \emph{full} and \emph{grow} methods, ensuring diversity in tree shape and size.
+    \item \textbf{Tournament selection} : $k$ individuals are drawn at random and the fittest is selected as a parent.
+    \item \textbf{Generational replacement} : the entire population is replaced by offspring each generation, with elitism achieved by tracking the all-time best individual separately.
+    \item \textbf{Early termination} : evolution halts immediately if a perfect fitness of 1.0 is reached.
 \end{itemize}
 
 A seeded \texttt{java.util.Random} instance is used for all stochastic decisions, ensuring full reproducibility.
@@ -143,8 +146,8 @@ Subtree crossover is applied. A random \texttt{FunctionNode} is selected in each
 
 Point mutation is applied with equal probability between two variants:
 \begin{itemize}
-    \item \textbf{Grow mutation} --- a random function node is selected and one of its children is replaced by a newly generated subtree of depth up to \texttt{mutationDepth}.
-    \item \textbf{Shrink mutation} --- a random function node is selected and one of its children is replaced by a random terminal node.
+    \item \textbf{Grow mutation} : a random function node is selected and one of its children is replaced by a newly generated subtree of depth up to \texttt{mutationDepth}.
+    \item \textbf{Shrink mutation} : a random function node is selected and one of its children is replaced by a random terminal node.
 \end{itemize}
 
 After grow mutation the tree is pruned to enforce \texttt{maxDepth}.
@@ -180,8 +183,8 @@ Subtree crossover between two decision trees: a random \texttt{DTDecisionNode} i
 
 Point mutation selects any node uniformly at random:
 \begin{itemize}
-    \item \textbf{Decision node} --- with equal probability, either the threshold is replaced by a new random value in $[0, 11]$, or the feature name is replaced by a random feature from the feature set.
-    \item \textbf{Leaf node} --- the class label is flipped ($0 \leftrightarrow 1$).
+    \item \textbf{Decision node} : with equal probability, either the threshold is replaced by a new random value in $[0, 11]$, or the feature name is replaced by a random feature from the feature set.
+    \item \textbf{Leaf node} : the class label is flipped ($0 \leftrightarrow 1$).
 \end{itemize}
 
 % -----------------------------------------------------------------------
@@ -245,13 +248,13 @@ At startup the user is prompted for: model choice, mode (demonstration / classif
 Both models were evaluated over \textbf{30 independent runs}, each with a unique seed. The best-performing run (highest test accuracy) is reported as the final result and will be demonstrated on demo day. Performance is measured by:
 
 \begin{itemize}
-    \item \textbf{Training accuracy} --- proportion of correctly classified training instances.
-    \item \textbf{Test accuracy} --- proportion of correctly classified unseen test instances.
-    \item \textbf{F-measure} --- harmonic mean of precision and recall on the test set:
+    \item \textbf{Training accuracy} : proportion of correctly classified training instances.
+    \item \textbf{Test accuracy} : proportion of correctly classified unseen test instances.
+    \item \textbf{F-measure} : harmonic mean of precision and recall on the test set:
     \[
         F_1 = \frac{2 \cdot \mathrm{Precision} \cdot \mathrm{Recall}}{\mathrm{Precision} + \mathrm{Recall}}
     \]
-    \item \textbf{Runtime} --- wall-clock time from start of training to end of training, in milliseconds.
+    \item \textbf{Runtime} : wall-clock time from start of training to end of training, in milliseconds.
 \end{itemize}
 
 % -----------------------------------------------------------------------
@@ -271,8 +274,8 @@ Table~\ref{tab:results} presents the metrics for the best run of each model.
 \toprule
 \textbf{Algorithm}   & \textbf{Training (\%)} & \textbf{Test (\%)} & \textbf{F-measure} & \textbf{Runtime (ms)} \\
 \midrule
-Arithmetic GP        & 83.06                  & 62.79              & 0.5556             & 678 \\
-Decision Tree GP     & 84.15                  & 58.14              & 0.4000             & 353 \\
+Arithmetic GP        & 83.0601                & 62.7907            & 0.5556             & 523 \\
+Decision Tree GP     & 84.1530                & 58.1395            & 0.4000             & 463 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -298,6 +301,57 @@ Decision Tree GP    & 50.50 & 3.65 & 43.02 & 58.14 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsection{30-Run Results Table}
+
+Table~\ref{tab:runresults} lists the individual evaluation results for all 30 independent runs of the Arithmetic GP. These are the seeded runs used to determine the best-performing model for demonstration.
+
+\small
+\begin{longtable}{rrrrr}
+\caption{Per-run evaluation results for 30 independent Arithmetic GP runs}\label{tab:runresults}\\
+\toprule
+\textbf{Seed} & \textbf{Train (\%)} & \textbf{Test (\%)} & \textbf{F-measure} & \textbf{Runtime (ms)} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{Seed} & \textbf{Train (\%)} & \textbf{Test (\%)} & \textbf{F-measure} & \textbf{Runtime (ms)} \\
+\midrule
+\endhead
+
+1  & 82.5137 & 47.6744 & 0.4000 & 587 \\
+2  & 83.0601 & 48.8372 & 0.4634 & 418 \\
+3  & 83.0601 & 47.6744 & 0.2623 & 584 \\
+4  & 84.6995 & 45.3488 & 0.3896 & 641 \\
+5  & 83.6066 & 43.0233 & 0.2462 & 483 \\
+6  & 84.1530 & 39.5349 & 0.2571 & 558 \\
+7  & 83.0601 & 47.6744 & 0.4000 & 615 \\
+8  & 83.6066 & 48.8372 & 0.3889 & 565 \\
+9  & 83.6066 & 45.3488 & 0.4337 & 550 \\
+10 & 84.6995 & 39.5349 & 0.3333 & 653 \\
+11 & 81.4208 & 50.0000 & 0.2951 & 383 \\
+12 & 84.1530 & 50.0000 & 0.4819 & 549 \\
+13 & 84.6995 & 39.5349 & 0.2973 & 793 \\
+14 & 83.0601 & 52.3256 & 0.4675 & 602 \\
+15 & 83.6066 & 50.0000 & 0.4941 & 573 \\
+16 & 84.1530 & 40.6977 & 0.2609 & 588 \\
+17 & 84.6995 & 52.3256 & 0.3492 & 596 \\
+18 & 84.6995 & 43.0233 & 0.2899 & 605 \\
+19 & 84.1530 & 43.0233 & 0.3099 & 812 \\
+20 & 83.6066 & 45.3488 & 0.3380 & 661 \\
+21 & 83.0601 & 56.9767 & 0.5316 & 470 \\
+22 & 84.1530 & 44.1860 & 0.2941 & 609 \\
+23 & 81.9672 & 52.3256 & 0.4225 & 594 \\
+24 & 84.1530 & 47.6744 & 0.3662 & 528 \\
+25 & 83.0601 & 62.7907 & 0.5556 & 523 \\
+26 & 83.0601 & 46.5116 & 0.3429 & 623 \\
+27 & 83.0601 & 43.0233 & 0.3467 & 532 \\
+28 & 84.1530 & 52.3256 & 0.3279 & 658 \\
+29 & 82.5137 & 52.3256 & 0.3051 & 830 \\
+30 & 83.6066 & 46.5116 & 0.4390 & 599 \\
+\bottomrule
+\end{longtable}
+\normalsize
 
 % -----------------------------------------------------------------------
 \section{Statistical Significance}
@@ -334,9 +388,9 @@ The maximum threshold of 11.0 was chosen to cover the widest observed encoded fe
 
 \subsection{Comparison}
 
-Across 30 independent runs the Decision Tree GP was more \textbf{consistent}, with a lower standard deviation of 3.65\% versus 5.27\% for the Arithmetic GP. The Arithmetic GP exhibited higher variance, occasionally reaching a peak test accuracy of 62.79\% (seed 25) but also falling as low as 39.53\%. Both models show signs of mild overfitting, with training accuracies around 83--84\% against test accuracies near 47--50\% on average, reflecting the limited and imbalanced nature of the dataset.
+Across 30 independent runs the Decision Tree GP was more \textbf{consistent}, with a lower standard deviation of 3.65\% versus 5.27\% for the Arithmetic GP. The Arithmetic GP exhibited higher variance, occasionally reaching a peak test accuracy of 62.7907\% (seed 25) but also falling as low as 39.5349\%. Both models show signs of mild overfitting, with training accuracies around 83--84\% against test accuracies near 47--50\% on average, reflecting the limited and imbalanced nature of the dataset.
 
-The Decision Tree GP was also considerably faster at 353 ms for its best run versus 678 ms, owing to its simpler tree evaluation (threshold comparisons versus floating-point arithmetic). The Wilcoxon signed-rank test ($p = 0.0088$) confirms the Decision Tree GP's advantage over 30 runs is statistically significant, even though a single lucky Arithmetic GP run outperformed the best Decision Tree result.
+The Decision Tree GP was also faster at 463 ms for its best run versus 523 ms, owing to its simpler tree evaluation (threshold comparisons versus floating-point arithmetic). The Wilcoxon signed-rank test ($p = 0.0088$) confirms the Decision Tree GP's advantage over 30 runs is statistically significant, even though a single lucky Arithmetic GP run outperformed the best Decision Tree result.
 
 % -----------------------------------------------------------------------
 \section{Conclusion}
@@ -346,6 +400,6 @@ Two Genetic Programming approaches were implemented and evaluated on the Breast 
 
 Two Genetic Programming approaches were implemented and evaluated on the Breast Cancer Wisconsin dataset. The Arithmetic GP evolves symbolic arithmetic expressions classified by the sign of the output, while the Decision Tree GP evolves binary decision trees using threshold comparisons on individual features. Both systems use ramped half-and-half initialisation, tournament selection, subtree crossover, and point mutation with a population of 200 over up to 100 generations.
 
-Over 30 independent seeded runs, the Decision Tree GP achieved a higher and more stable mean test accuracy (50.50\% $\pm$ 3.65\%) compared to the Arithmetic GP (47.48\% $\pm$ 5.27\%). A Wilcoxon signed-rank test confirmed this difference is statistically significant ($p = 0.0088$). The best individual run overall belonged to the Arithmetic GP at 62.79\% test accuracy (seed 25), suggesting that while the Arithmetic GP has higher potential, it is more sensitive to the random seed and less reliable across runs.
+Over 30 independent seeded runs, the Decision Tree GP achieved a higher and more stable mean test accuracy (50.50\% $\pm$ 3.65\%) compared to the Arithmetic GP (47.48\% $\pm$ 5.27\%). A Wilcoxon signed-rank test confirmed this difference is statistically significant ($p = 0.0088$). The best individual run overall belonged to the Arithmetic GP at 62.7907\% test accuracy (seed 25), suggesting that while the Arithmetic GP has higher potential, it is more sensitive to the random seed and less reliable across runs.
 
 \end{document}
