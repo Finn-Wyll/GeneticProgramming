@@ -40,7 +40,9 @@ public abstract class GeneticProgram {
 
 	protected abstract int predict(Node<Double> tree, double[] features);
 
-	protected abstract void initialiseByPath(String path);
+	protected abstract void saveToFile(String path);
+
+	protected abstract void initialiseByFile(String path);
 
 	public Node<Double> train(double[][] X, int[] y) {
 		return train(X, y, false);
@@ -51,7 +53,7 @@ public abstract class GeneticProgram {
 	}
 
 	public Node<Double> train(double[][] X, int[] y, boolean verbose, String path) {
-		initialiseByPath(path);
+		initialiseByFile(path);
 
 		bestFitness = -1;
 
