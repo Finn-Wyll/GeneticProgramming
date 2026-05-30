@@ -26,9 +26,8 @@ public class Main {
 			double[][] testX = loadFeatures(testPath);
 			int[] testY = loadLabels(testPath);
 
-			List<String> variableNames = List.of(
-					"age", "menopause", "tumor_size", "inv_nodes",
-					"node_caps", "deg_malig", "breast", "breast_quad", "irradiat");
+			List<String> variableNames = loadVariableNames(trainPath, 0);
+			assert variableNames == loadVariableNames(testPath, 0);
 
 			int populationSize = 200;
 			int maxGenerations = 100;
@@ -50,7 +49,8 @@ public class Main {
 
 				gp = new ArithmeticGeneticProgram(
 						populationSize, maxGenerations, crossoverRate, mutationRate,
-						maxDepth, mutationDepth, tournamentSize, seed, ctx, variableNames, functions);
+						maxDepth, mutationDepth, tournamentSize, seed, ctx, variableNames,
+						functions);
 
 				System.out.println("\n--- Arithmetic GP ---");
 			} else {
@@ -58,7 +58,8 @@ public class Main {
 
 				gp = new DecisionTreeGeneticProgram(
 						populationSize, maxGenerations, crossoverRate, mutationRate,
-						maxDepth, mutationDepth, tournamentSize, seed, ctx, variableNames, 11.0);
+						maxDepth, mutationDepth, tournamentSize, seed, ctx, variableNames,
+						11.0);
 
 				System.out.println("\n--- Decision Tree GP ---");
 			}
@@ -84,6 +85,24 @@ public class Main {
 			System.out.printf("Seed              : %d%n", seed);
 			System.out.println("Best Individual   : " + gp.describe(best));
 		}
+	}
+
+	private static List<String> loadVariableNames(String path, int resultIndex) throws Exception {
+
+		List<String> variables = new ArrayList<>();
+
+		try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+			String line = br.readLine();
+			if (line != null) {
+				String[] parts = line.split(",");
+				for (int i = 0; i < parts.length; i++) {
+					if (i != resultIndex)
+						variables.add(parts[i]);
+
+				}
+			}
+		}
+		return variables;
 	}
 
 	private static int[] loadLabels(String path) throws Exception {
