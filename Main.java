@@ -27,7 +27,8 @@ public class Main {
 			int[] testY = loadLabels(testPath);
 
 			List<String> variableNames = loadVariableNames(trainPath, 0);
-			assert variableNames == loadVariableNames(testPath, 0);
+			assert variableNames == loadVariableNames(testPath, 0)
+					: "test variable and training variables do not match";
 
 			int populationSize = 200;
 			int maxGenerations = 100;
