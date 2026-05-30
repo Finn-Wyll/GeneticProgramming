@@ -18,6 +18,76 @@ public class ArithmeticGeneticProgram extends GeneticProgram {
 	}
 
 	@Override
+	protected void saveToFile(String path) {
+		try (java.io.PrintWriter pw = new java.io.PrintWriter(new java.io.FileWriter(path))) {
+			for (Node<Double> tree : population)
+				pw.println(describe(tree));
+		} catch (java.io.IOException e) {
+			System.err.println("saveToFile failed: " + e.getMessage());
+		}
+	}
+
+	@Override
+	protected void initialiseByFile(String path) {
+		population = new ArrayList<>();
+
+		try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(path))) {
+			String line;
+			while ((line = br.readLine()) != null) {
+				line = line.trim();
+				if (!line.isEmpty())
+					population.add(parseArithTree(line));
+			}
+			System.out.printf("Loaded %d individuals from %s%n", population.size(), path);
+		} catch (java.io.IOException e) {
+			System.err.println("Could not load population file, starting fresh: " + e.getMessage());
+		}
+
+		while (population.size() < populationSize)
+			population.add(generateTree(maxDepth, random.nextBoolean()));
+	}
+
+	private Node<Double> parseArithTree(String s) {
+		s = s.trim();
+		if (s.startsWith("(")) {
+			String inner = s.substring(1, s.length() - 1).trim(); // "left op right"
+			int depth = 0;
+			int opStart = -1;
+			for (int i = 0; i < inner.length(); i++) {
+				char c = inner.charAt(i);
+				if (c == '(')
+					depth++;
+				else if (c == ')')
+					depth--;
+				else if (c == ' ' && depth == 0) {
+					opStart = i;
+					break;
+				}
+			}
+
+			String leftS = inner.substring(0, opStart).trim();
+			String rest = inner.substring(opStart + 1).trim(); // "op right"
+			int spaceAfterOp = rest.indexOf(' ');
+			String opSym = rest.substring(0, spaceAfterOp);
+			String rightS = rest.substring(spaceAfterOp + 1).trim();
+
+			FunctionNode<Double> fn = functions.stream()
+					.filter(f -> f.getSymbol().equals(opSym))
+					.findFirst()
+					.orElseThrow(() -> new IllegalArgumentException("Unknown operator: " + opSym));
+
+			FunctionNode<Double> node = new FunctionNode<>(fn.getSymbol(), fn.getOperator());
+			node.setLeft(parseArithTree(leftS));
+			node.setRight(parseArithTree(rightS));
+			return node;
+		} else if (variableNames.contains(s)) {
+			return context.node(s);
+		} else {
+			return new TerminalNode<>(Double.parseDouble(s));
+		}
+	}
+
+	@Override
 	protected void initialise() {
 		population = new ArrayList<>();
 		int segmentSize = populationSize / maxDepth;
