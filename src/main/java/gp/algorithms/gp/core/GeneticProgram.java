@@ -1,3 +1,6 @@
+package gp.algorithms.gp.core;
+
+import gp.core.dto.GenerationStats;
 import java.util.*;
 
 public abstract class GeneticProgram {
@@ -14,6 +17,7 @@ public abstract class GeneticProgram {
 	protected List<Node<Double>> population;
 	protected Node<Double> bestIndividual;
 	protected double bestFitness;
+	protected List<GenerationStats> history = new ArrayList<>();
 
 	public GeneticProgram(int populationSize, int maxGenerations, double crossoverRate,
 			double mutationRate, int maxDepth, int mutationDepth,
@@ -30,13 +34,13 @@ public abstract class GeneticProgram {
 
 	protected abstract void initialise();
 
-	protected abstract double evaluateFitness(Node<Double> individual, double[][] X, int[] y);
+	public abstract double evaluateFitness(Node<Double> individual, double[][] X, int[] y);
 
 	protected abstract List<Node<Double>> crossover(Node<Double> p1, Node<Double> p2);
 
 	protected abstract Node<Double> mutate(Node<Double> tree);
 
-	protected abstract String describe(Node<Double> node);
+	public abstract String describe(Node<Double> node);
 
 	protected abstract int predict(Node<Double> tree, double[] features);
 
@@ -56,18 +60,23 @@ public abstract class GeneticProgram {
 		initialiseByFile(path);
 
 		bestFitness = -1;
+		history.clear();
 
 		for (int gen = 0; gen < maxGenerations; gen++) {
 
 			// Evaluate fitness and track best individual
 			double[] fitnesses = new double[populationSize];
+			double totalFitness = 0;
 			for (int i = 0; i < populationSize; i++) {
 				fitnesses[i] = evaluateFitness(population.get(i), X, y);
+				totalFitness += fitnesses[i];
 				if (fitnesses[i] > bestFitness) {
 					bestFitness = fitnesses[i];
 					bestIndividual = population.get(i).clone();
 				}
 			}
+
+			history.add(new GenerationStats(gen, bestFitness, totalFitness / populationSize));
 
 			if (verbose) {
 				System.out.printf("Generation %d | Best fitness: %.4f | Best individual: %s%n",
@@ -113,18 +122,23 @@ public abstract class GeneticProgram {
 	public Node<Double> train(double[][] X, int[] y, boolean verbose) {
 		initialise();
 		bestFitness = -1;
+		history.clear();
 
 		for (int gen = 0; gen < maxGenerations; gen++) {
 
 			// Evaluate fitness and track best individual
 			double[] fitnesses = new double[populationSize];
+			double totalFitness = 0;
 			for (int i = 0; i < populationSize; i++) {
 				fitnesses[i] = evaluateFitness(population.get(i), X, y);
+				totalFitness += fitnesses[i];
 				if (fitnesses[i] > bestFitness) {
 					bestFitness = fitnesses[i];
 					bestIndividual = population.get(i).clone();
 				}
 			}
+
+			history.add(new GenerationStats(gen, bestFitness, totalFitness / populationSize));
 
 			if (verbose) {
 				System.out.printf("Generation %d | Best fitness: %.4f | Best individual: %s%n",
@@ -165,6 +179,10 @@ public abstract class GeneticProgram {
 		}
 
 		return bestIndividual;
+	}
+
+	public List<GenerationStats> getHistory() {
+		return history;
 	}
 
 	protected Node<Double> tournamentSelect(double[] fitnesses) {

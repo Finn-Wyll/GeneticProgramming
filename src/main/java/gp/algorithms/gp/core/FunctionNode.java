@@ -1,3 +1,5 @@
+package gp.algorithms.gp.core;
+
 import java.util.function.BinaryOperator;
 
 /**
@@ -10,7 +12,7 @@ public class FunctionNode<T> extends Node<T> {
 	private Node<T> left;
 	private Node<T> right;
 
-	FunctionNode(String symbol, BinaryOperator<T> function) {
+	public FunctionNode(String symbol, BinaryOperator<T> function) {
 		this.symbol = symbol;
 		this.operator = function;
 	}

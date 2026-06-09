@@ -1,3 +1,5 @@
+package gp.algorithms.gp.core;
+
 public class VariableNode<T> extends Node<T> {
 	private final String name;
 	private final Context<T> context;

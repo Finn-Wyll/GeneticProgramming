@@ -1,3 +1,5 @@
+package gp.algorithms.gp.core;
+
 public class DTDecisionNode extends Node<Double>
 {
     private String featureName;

@@ -1,3 +1,5 @@
+package gp.algorithms.gp.core;
+
 public class DTLeafNode extends Node<Double>
 {
     private double classLabel;

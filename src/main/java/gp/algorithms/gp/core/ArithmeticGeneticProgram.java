@@ -1,3 +1,5 @@
+package gp.algorithms.gp.core;
+
 import java.util.*;
 
 public class ArithmeticGeneticProgram extends GeneticProgram {
@@ -103,7 +105,8 @@ public class ArithmeticGeneticProgram extends GeneticProgram {
 	}
 
 	@Override
-	protected double evaluateFitness(Node<Double> individual, double[][] X, int[] y) {
+	public double evaluateFitness(Node<Double> individual, double[][] X, int[] y) {
+
 		int correct = 0;
 		for (int i = 0; i < X.length; i++) {
 			for (int j = 0; j < variableNames.size(); j++) {
@@ -242,7 +245,7 @@ public class ArithmeticGeneticProgram extends GeneticProgram {
 	}
 
 	@Override
-	protected String describe(Node<Double> node) {
+	public String describe(Node<Double> node) {
 		if (node == null) {
 			return "?";
 		}
