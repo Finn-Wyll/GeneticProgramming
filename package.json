@@ -1,0 +1,19 @@
+{
+  "name": "genetic-programming-platform",
+  "version": "1.0.0",
+  "description": "Full-stack AI platform for Genetic Programming",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"mvn spring-boot:run\" \"cd frontend && npm run dev\"",
+    "build": "mvn clean package && cd frontend && npm run build",
+    "backend": "mvn spring-boot:run",
+    "frontend": "cd frontend && npm run dev",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

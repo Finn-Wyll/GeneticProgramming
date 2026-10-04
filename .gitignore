@@ -3,3 +3,7 @@ target/
 .DS_Store
 **/.DS_Store
 LOMBOK_GUIDE.md
+node_modules/
+.next/
+frontend/node_modules/
+frontend/.next/
